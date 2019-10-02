@@ -1,0 +1,154 @@
+
+---
+- name: Install dependencies and copy to AWS
+  hosts: all
+  become: ubuntu
+
+  tasks:
+  - name: Installing requirements
+    become: true
+    apt:
+      name:
+        - python3
+        - python3-pip
+        - python3-setuptools
+        - build-essential
+        - libsqlite3-dev
+        - libreadline-dev
+        - libssl-dev
+        - libffi-dev
+        - python-pip
+        - python3-setuptools
+        - python3-pip
+        - python3-dev
+        - python3-venv
+        - sqlite3
+        - nginx
+      state: latest   
+      update_cache: yes
+
+  - git:
+      repo: https://github.com/romanrzes/falsk.git
+      dest: /home/ubuntu/myproject
+  
+  - name: Install virtualenv via pip
+    become: true
+    pip:
+      name: virtualenv
+      executable: pip3
+
+  - name: Install requirements
+    pip:
+      requirements: /home/ubuntu/myproject/requirements.txt
+      virtualenv: /home/ubuntu/myproject   
+
+  - name: Install gunicorn
+    pip:
+      name: gunicorn
+      virtualenv: /home/ubuntu/myproject
+
+
+  - name: Create vars.cfg file
+    file:
+      path: "/home/ubuntu/myproject/vars.cfg"
+      owner: ubuntu
+      group: ubuntu
+      mode: '0755'
+      state: touch
+
+
+#  - name: Configuring gunicorn
+#    shell: gunicorn --bind 0.0.0.0:5000 app:app
+
+  - name: Create Myproject file
+    file:
+      path: "/home/ubuntu/myproject/myproject.py"
+      owner: ubuntu
+      group: ubuntu
+      mode: '0755'
+      state: touch
+
+  - name: Allow firewall 5000
+    become: true
+    shell: ufw allow 5000
+
+#    #- name: Run myproject
+#
+
+  - name: Create Myproject Service
+    become: true
+    file:
+      path: "/etc/systemd/system/myproject.service"
+      owner: root
+      group: root
+      mode: '0755'
+      state: touch
+
+  - name: Insert code into the service
+    become: true
+    blockinfile:
+        path: "/etc/systemd/system/myproject.service"
+        block: |
+                [Unit]
+                Description=Gunicorn instance to serve myproject
+                After=network.target
+
+                [Service]
+                User=root
+                Group=www-data
+                WorkingDirectory=/home/ubuntu/myproject
+                ExecStart=/home/ubuntu/myproject/bin/gunicorn --workers 3 --bind unix:myproject.sock -m 007 app:app
+
+                [Install]
+                WantedBy=multi-user.target
+
+  - name: Create Myproject file
+    become: true
+    file:
+      path: "/etc/nginx/sites-available/myproject"
+      owner: root
+      group: root
+      mode: '0755'
+      state: touch
+
+  - name: Insert code into the file
+    become: true
+    blockinfile:
+        path: "/etc/nginx/sites-available/myproject"
+        block: |
+                server {
+                    listen 80;
+                    server_name your_domain www.your_domain;
+
+                    location / {
+                       include proxy_params;
+                       proxy_pass http://unix:/home/ubuntu/myproject/myproject.sock;
+                        }
+                 }
+
+  - name: reate symlink
+    become: true
+    shell: ln -s /etc/nginx/sites-available/myproject /etc/nginx/sites-enabled
+
+  - name: Restart NGINX
+    become: true
+    shell: ufw delete allow 5000
+    shell: ufw allow 'Nginx Full'
+    shell: systemctl daemon-reload
+
+  - name: Remove default
+    become: true
+    shell: rm /etc/nginx/sites-enabled/default
+
+  - name: Restart nginx service
+    become: true
+    service:
+          name: nginx.service
+          state: restarted
+
+  - name: Restart myproject service
+    become: true
+    service:
+          name: myproject.service
+          state: restarted
+
