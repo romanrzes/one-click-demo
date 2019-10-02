@@ -30,7 +30,12 @@
   - git:
       repo: https://github.com/romanrzes/falsk.git
       dest: /home/ubuntu/myproject
-
+  
+  - name: Install virtualenv via pip
+    become: true
+    pip:
+      name: virtualenv
+      executable: pip3
 
   - name: Install requirements
     pip:
@@ -41,17 +46,6 @@
     pip:
       name: gunicorn
       virtualenv: /home/ubuntu/myproject
-
-
-#  - name: Create Myproject dir
-#    file:
-#      path: /home/ubuntu/myproject
-#      state: directory
-#     mode: '0755'
-#
-# - name: Move to myproject dir
-#   shell: cd /home/ubuntu/myproject
-#
 
 
   - name: Create vars.cfg file
@@ -73,19 +67,6 @@
       group: ubuntu
       mode: '0755'
       state: touch
-
-#  - name: Insert code into the file
-#    blockinfile:
-#        path: "/home/ubuntu/myproject/myproject.py"
-#        block: |
-#            from flask import Flask
-#            app = Flask(__name__)#
-#            @app.route("/")
-#            def hello():
-#              return "<h1 style='color:blue'>Hello There!</h1>"
-#
-#            if __name__ == "__main__":
-#              app.run(host='0.0.0.0')
 
   - name: Allow firewall 5000
     become: true
@@ -145,26 +126,29 @@
                         }
                  }
 
-
-#  - name: Create link
-#    become: true
-#   file:
-#     src: "/etc/nginx/sites-available/myproject"
-#      dest: "/etc/nginx/sites-enabled"
-#      #owner: root
-#      #group: root
-#      state: link
-
-
   - name: reate symlink
     become: true
-    shell: ln -s etc/nginx/sites-available/myproject /etc/nginx/sites-enabled
+    shell: ln -s /etc/nginx/sites-available/myproject /etc/nginx/sites-enabled
 
   - name: Restart NGINX
     become: true
-    shell: systemctl restart nginx
     shell: ufw delete allow 5000
     shell: ufw allow 'Nginx Full'
     shell: systemctl daemon-reload
-    shell: systemctl restart myproject.service
+
+  - name: Remove default
+    become: true
+    shell: rm /etc/nginx/sites-enabled/default
+
+  - name: Restart nginx service
+    become: true
+    service:
+          name: nginx.service
+          state: restarted
+
+  - name: Restart myproject service
+    become: true
+    service:
+          name: myproject.service
+          state: restarted
 
