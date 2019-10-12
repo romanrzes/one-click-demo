@@ -3,7 +3,7 @@
 */
 
 resource "aws_launch_configuration" "asg" {
-  image_id        = "ami-03fea2507969c54ab"
+  image_id        = "${var.amis}"
   instance_type   = "${var.ins_type}"
   security_groups = ["${aws_security_group.instance.id}"]
   key_name        = "${var.key_name}"
@@ -12,8 +12,6 @@ resource "aws_launch_configuration" "asg" {
               #!/bin/bash
               echo "Hello" > index.html
               nohup busybox httpd -f -p 8080 &
-              sudo su
-              curl --user $JENKINS_ID:$JENKINS_PASS  http://18.185.132.129:8080/job/Ansible_App_Up_And_Running/build?token=asdaff3124rtg423wfd
               EOF
   lifecycle {
     create_before_destroy = true
