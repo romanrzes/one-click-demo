@@ -1,3 +1,7 @@
+provider "aws" {
+    region = "${var.aws_region}"
+}
+
 terraform {
   backend "s3" {
     bucket = "terraform-20190927145631752200000001"
