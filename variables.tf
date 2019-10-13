@@ -66,7 +66,7 @@ variable "ins_type" {
 
 variable "health_check_type" {
   description = "Health_check_type"
-  default     = "ELB"
+  default     = "EC2"
 }
 
 variable "key_name" {
