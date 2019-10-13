@@ -66,7 +66,8 @@ output "elb_db_dns_name" {
 resource "aws_elb" "elb_db" {
   name = "elb-db"
   subnets = ["${aws_subnet.eu-central-1-private.id}"]
-
+  security_groups = ["${aws_security_group.elb_db_sec.id}"
+    
   listener {
     lb_port           = "${var.http_port}"
     lb_protocol       = "${var.protocol_http}"
@@ -86,6 +87,7 @@ resource "aws_elb" "elb_db" {
 
 resource "aws_security_group" "elb_db_sec" {
   name = "elb_db_sec"
+  vpc_id = "${aws_vpc.ddefault.id}"
 
   ingress {
     from_port   = "${var.http_port}"
