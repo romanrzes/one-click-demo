@@ -95,6 +95,7 @@ resource "aws_elb" "elb" {
   name = "${var.elb_name}"
   //availability_zones = ["${var.az}a", "${var.az}b", "${var.az}c"]
   subnets = ["${aws_subnet.eu-central-1-public.id}", "${aws_subnet.eu-central-1-private.id}"]
+  security_groups = ["${aws_security_group.elb.id}"]
 
   listener {
     lb_port           = "${var.http_port}"
@@ -114,6 +115,7 @@ resource "aws_elb" "elb" {
 
 resource "aws_security_group" "elb" {
   name = "${var.sec_group_elb_name}"
+  vpc_id = "${aws_vpc.ddefault.id}"
 
   ingress {
     from_port   = "${var.http_port}"
