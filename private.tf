@@ -9,7 +9,7 @@ resource "aws_instance" "db_master" {
   subnet_id              = "${aws_subnet.eu-central-1-private.id}"
 
   tags = {
-    Name  = "db-master ${random_id.server.hex}"
+    Name  = "db-master"
     Group = "${var.db_serv_group}"
   }
 }
@@ -22,7 +22,7 @@ resource "aws_instance" "db_slave" {
   subnet_id              = "${aws_subnet.eu-central-1-private.id}"
 
   tags = {
-    Name  = "db-slave ${random_id.server.hex}"
+    Name  = "db-slave"
     Group = "${var.db_serv_group}"
   }
 }
