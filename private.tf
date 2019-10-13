@@ -66,7 +66,7 @@ output "elb_db_dns_name" {
 resource "aws_elb" "elb_db" {
   name = "elb-db"
   subnets = ["${aws_subnet.eu-central-1-private.id}"]
-  security_groups = ["${aws_security_group.elb_db_sec.id}"
+  security_groups = ["${aws_security_group.elb_db_sec.id}"]
     
   listener {
     lb_port           = "${var.http_port}"
